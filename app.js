@@ -1,17 +1,21 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const server = require("http").Server(app);
-const { v4: uuidv4 } = require("uuid");
+const server = require('http').Server(app);
+const { v4: uuidv4 } = require('uuid');
 
 
+//****************************//PORT //****************************//
+// process.env.PORT =8080; 
+const port = process.env.PORT || 3000; // While hosting 3000 may not be available
+server.listen(port, ()=> console.log(`Listening on port ${port}..`));
 
-const io = require("socket.io")(server, {
+const io = require('socket.io')(server, {
   cors: {
     origin: '*'
   }
 });
 
-const { ExpressPeerServer } = require("peer");
+const { ExpressPeerServer } = require('peer');
 const peerServer = ExpressPeerServer(server, {
   debug: true,
 });
@@ -42,8 +46,3 @@ io.on("connection", (socket) => {
 });
 
 
-
-//****************************//PORT //****************************//
-// process.env.PORT =8080; 
-const port = process.env.PORT || 3000; // While hosting 3000 may not be available
-server.listen(port, ()=> console.log(`Listening on port ${port}..`));
