@@ -1,4 +1,7 @@
-const socket = io("/");
+const currentLink = window.location.host + '/';
+console.log(currentLink)
+
+const socket = io(currentLink);
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 const showChat = document.querySelector("#showChat");
