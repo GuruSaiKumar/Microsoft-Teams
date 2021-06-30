@@ -1,13 +1,14 @@
 const express = require('express');
 const app = express();
-const server = require('http').Server(app);
+// const server = require('http').Server(app);
 const { v4: uuidv4 } = require('uuid');
 
 
 //****************************//PORT //****************************//
 // process.env.PORT =8080; 
 const port = process.env.PORT || 3000; // While hosting 3000 may not be available
-server.listen(port, ()=> console.log(`Listening on port ${port}..`));
+// server.listen(port, ()=> console.log(`Listening on port ${port}..`));
+const server=app.listen(port,()=> console.log(`Listening on port ${port}..`));
 
 const io = require('socket.io')(server, {
   cors: {
@@ -38,7 +39,8 @@ app.get("/:room", (req, res) => {
 io.on("connection", (socket) => {
   socket.on("join-room", (roomId, userId, userName) => {
     socket.join(roomId);
-    socket.to(roomId).broadcast.emit("user-connected", userId);
+    // socket.to(roomId).broadcast.emit("user-connected", userId);// Syntax has changed
+    socket.broadcast.to(roomId).emit("user-connected",userId)
     socket.on("message", (message) => {
       io.to(roomId).emit("createMessage", message, userName);
     });
