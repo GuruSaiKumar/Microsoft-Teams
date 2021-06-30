@@ -22,9 +22,11 @@ showChat.addEventListener("click", () => {
 const user = prompt("Enter your name");
 
 var peer = new Peer(undefined, {
-  path: "/peerjs",
-  host: "/",
-  port: "443",
+  // path: "/peerjs",
+  host: "/",//While deploying host may change
+  port: "8081",//cannot be less than some 1000s
+  secure: false // For checking secure or insecure http or https
+  //peerjs --port 8081  
 });
 
 let myVideoStream;
@@ -46,7 +48,10 @@ navigator.mediaDevices
     });
 
     socket.on("user-connected", (userId) => {
-      connectToNewUser(userId, stream);
+      // connectToNewUser(userId, stream);
+      console.log('New User Connected: ' + userId)
+      const fc = () => connectToNewUser(userId, stream)
+      timerid = setTimeout(fc, 1000 )
     });
   });
 
