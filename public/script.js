@@ -23,13 +23,15 @@ showChat.addEventListener("click", () => {
 });
 
 const user = prompt("Enter your name");
+// const user = "Guru"
 
 var peer = new Peer(undefined, {
-  // path: "/peerjs",
+  // path: "peerjs-server.herokuapp.com",
   host: "https://microsoft-teams-clone-guru.herokuapp.com/",//While deploying host may change
+  // host: '/',
   port: 443,//cannot be less than some 1000s
   secure: true // For checking secure or insecure http or https
-  //peerjs --port 8081  
+  //peerjs --port 443  
 });
 
 let myVideoStream;
