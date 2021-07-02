@@ -27,7 +27,7 @@ const user = prompt("Enter your name");
 
 var peer = new Peer(undefined, {
   // path: "peerjs-server.herokuapp.com",
-  host: "https://microsoft-teams-clone-guru.herokuapp.com/",//While deploying host may change
+  host: "https://gurus-peerjs-server.herokuapp.com/",//While deploying host may change
   // host: '/',
   port: 443,//cannot be less than some 1000s
   secure: true // For checking secure or insecure http or https
