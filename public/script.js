@@ -23,16 +23,20 @@ showChat.addEventListener("click", () => {
 });
 
 const user = prompt("Enter your name");
-// const user = "Guru"
 
+/*
+Basically we need a peerServer for generating a new Id for each user.
+For testing locally we can run a server on some port by using this command
+"peerjs --port 443" => This creates a peerserver on localhost:443
+*/ 
 var peer = new Peer(undefined, {
-  // path: "peerjs-server.herokuapp.com",
-  host: "gurus-peerjs-server.herokuapp.com",//While deploying host may change
-  // host: '/',
-  port: 443,//cannot be less than some 1000s
-  secure: true // For checking secure or insecure http or https
-  //peerjs --port 443  
+  host: "gurus-peerjs-server.herokuapp.com", //My peerJs server
+  // host: '/', //For testing on local machine
+  secure: true // For checking secure or insecure i.e, http or https
 });
+
+
+const peers = {};
 
 let myVideoStream;
 navigator.mediaDevices
@@ -66,14 +70,26 @@ const connectToNewUser = (userId, stream) => {
   call.on("stream", (userVideoStream) => {
     addVideoStream(video, userVideoStream);
   });
+  call.on('close', () => {
+    video.remove()
+  })
+
+  peers[userId] = call
 };
+
+socket.on('user-disconnected', userId => {
+  if (peers[userId]) peers[userId].close();
+  console.log(userId + " : Disconnected :(");
+})
 
 peer.on("open", (id) => {
   socket.emit("join-room", ROOM_ID, id, user);
 });
 
+
 const addVideoStream = (video, stream) => {
   video.srcObject = stream;
+  video.controls = true;
   video.addEventListener("loadedmetadata", () => {
     video.play();
     videoGrid.append(video);
@@ -81,16 +97,18 @@ const addVideoStream = (video, stream) => {
 };
 
 let text = document.querySelector("#chat_message");
-let send = document.getElementById("send");
+let sendMessage = document.getElementById("send");
 let messages = document.querySelector(".messages");
 
-send.addEventListener("click", (e) => {
+sendMessage.addEventListener("click", (e) => {
+  //If message is not empty  emit the message event;
   if (text.value.length !== 0) {
     socket.emit("message", text.value);
-    text.value = "";
+    text.value = "";//Clear the textbox
   }
 });
 
+//Send the message if the user presses Enter
 text.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && text.value.length !== 0) {
     socket.emit("message", text.value);
@@ -101,44 +119,102 @@ text.addEventListener("keydown", (e) => {
 const inviteButton = document.querySelector("#inviteButton");
 const muteButton = document.querySelector("#muteButton");
 const stopVideo = document.querySelector("#stopVideo");
+// const shareScreen =document.querySelector("#shareScreen");
+
 muteButton.addEventListener("click", () => {
-  const enabled = myVideoStream.getAudioTracks()[0].enabled;
-  if (enabled) {
+  const MicEnabled = myVideoStream.getAudioTracks()[0].enabled;
+  if (MicEnabled) {
     myVideoStream.getAudioTracks()[0].enabled = false;
-    html = `<i class="fas fa-microphone-slash"></i>`;
-    muteButton.classList.toggle("background__red");
-    muteButton.innerHTML = html;
+    setMuteButton();
+    // html = `<i class="fas fa-microphone-slash"></i>`;
+    // muteButton.classList.toggle("background__red");
+    // muteButton.innerHTML = html;
   } else {
     myVideoStream.getAudioTracks()[0].enabled = true;
-    html = `<i class="fas fa-microphone"></i>`;
-    muteButton.classList.toggle("background__red");
-    muteButton.innerHTML = html;
+    unsetMuteButton();
+    // html = `<i class="fas fa-microphone"></i>`;
+    // muteButton.classList.toggle("background__red");
+    // muteButton.innerHTML = html;
   }
 });
+
+const unsetMuteButton = ()=>{
+  const html = `<i class="fas fa-microphone"></i>`;
+  muteButton.innerHTML = html;
+  console.log("You are Unmuted");
+}
+
+const setMuteButton = () =>{
+ const html = `<i class="fas fa-microphone-slash" style="color:red;"></i>`;
+ muteButton.innerHTML = html;
+ console.log("Muted");
+}
+
+
 
 stopVideo.addEventListener("click", () => {
-  const enabled = myVideoStream.getVideoTracks()[0].enabled;
-  if (enabled) {
+  const VideoEnabled = myVideoStream.getVideoTracks()[0].enabled;
+  if (VideoEnabled) {
     myVideoStream.getVideoTracks()[0].enabled = false;
-    html = `<i class="fas fa-video-slash"></i>`;
-    stopVideo.classList.toggle("background__red");
-    stopVideo.innerHTML = html;
+    unsetVideoButton();
+    // html = `<i class="fas fa-video-slash"></i>`;
+    // stopVideo.classList.toggle("background__red");
+    // stopVideo.innerHTML = html;
   } else {
     myVideoStream.getVideoTracks()[0].enabled = true;
-    html = `<i class="fas fa-video"></i>`;
-    stopVideo.classList.toggle("background__red");
-    stopVideo.innerHTML = html;
+    setVideoButton();
+    // html = `<i class="fas fa-video"></i>`;
+    // stopVideo.classList.toggle("background__red");
+    // stopVideo.innerHTML = html;
   }
 });
 
+const setVideoButton = ()=>{
+  const html = `<i class="fas fa-video"></i>`;
+  stopVideo.innerHTML = html;
+  console.log("Cammera Mode ON");
+}
+
+const unsetVideoButton = () =>{
+ const html = `<i class="fas fa-video-slash" style="color:red;"></i>`;
+ stopVideo.innerHTML = html;
+ console.log("Cammera Mode OFF");
+}
+
 inviteButton.addEventListener("click", (e) => {
-  prompt(
-    "Copy this link and send it to people you want to meet with",
-    window.location.href
-  );
+  var share = document.createElement("input"),
+  text = window.location.href;
+  
+  console.log(text);
+  document.body.appendChild(share);
+  share.value = text;
+  share.select();
+  document.execCommand("copy");
+  document.body.removeChild(share);
+  alert('Invite link has been copied.');
 });
 
+// shareScreen.addEventListener("click", ()=>{
+//   const video = document.getElementById("myScreen");
+//   let captureStream = null;
+
+//   try {
+//     captureStream = navigator.mediaDevices.getDisplayMedia();
+//     // addVideoStream(video, captureStream);
+//     video.srcObject = captureStream;
+//     video.onloadedmetadata = function(e) {
+//       video.play();
+//       videoGrid.append(video);
+//     };
+
+//   } catch(err) {
+//     console.error("Error: " + err);
+//   }
+//   // return captureStream;
+// })
+
 socket.on("createMessage", (message, userName) => {
+  //For adding message
   messages.innerHTML =
     messages.innerHTML +
     `<div class="message">
@@ -147,4 +223,9 @@ socket.on("createMessage", (message, userName) => {
         }</span> </b>
         <span>${message}</span>
     </div>`;
+
+  //For scrolling to bottom
+  var chatWindow = document.querySelector(".main__chat_window");
+  var xH = chatWindow.scrollHeight; 
+  chatWindow.scrollTo(0, xH);
 });
