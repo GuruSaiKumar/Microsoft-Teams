@@ -158,15 +158,9 @@ stopVideo.addEventListener("click", () => {
   if (VideoEnabled) {
     myVideoStream.getVideoTracks()[0].enabled = false;
     unsetVideoButton();
-    // html = `<i class="fas fa-video-slash"></i>`;
-    // stopVideo.classList.toggle("background__red");
-    // stopVideo.innerHTML = html;
   } else {
     myVideoStream.getVideoTracks()[0].enabled = true;
     setVideoButton();
-    // html = `<i class="fas fa-video"></i>`;
-    // stopVideo.classList.toggle("background__red");
-    // stopVideo.innerHTML = html;
   }
 });
 
@@ -201,7 +195,13 @@ shareScreen.addEventListener("click", async ()=>{
 
   try {
     captureStream = await navigator.mediaDevices.getDisplayMedia();
-    addVideoStream(video, captureStream);
+    let Sender = peer.getSenders().map(function (sender) {
+      sender.replaceTrack(captureStream.getTracks().find(function (track) {
+          return track.kind === sender.track.kind;
+      }));
+  });
+    Sender.replaceTrack(captureStream)
+    // addVideoStream(video, captureStream);
     // video.srcObject = captureStream;
     // video.onloadedmetadata = function(e) {
     //   video.play();
@@ -219,9 +219,14 @@ socket.on("createMessage", (message, userName) => {
   messages.innerHTML =
     messages.innerHTML +
     `<div class="message">
-        <b><i class="far fa-user-circle"></i> <span> ${
-          userName === user ? "me" : userName
-        }</span> </b>
+        <div class = "profile" >
+          <b><i class="far fa-user-circle"></i> <span> ${
+            userName === user ? "me" : userName
+          }</span> </b>
+          <div class = "time">
+            <time> ${ new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" }) }</time>
+          </div>
+        </div>
         <span>${message}</span>
     </div>`;
 
@@ -230,3 +235,19 @@ socket.on("createMessage", (message, userName) => {
   var xH = chatWindow.scrollHeight; 
   chatWindow.scrollTo(0, xH);
 });
+
+
+var ResponseTime = document.getElementById("rtt-value");
+
+function claculateRTT(){
+  var networkInformation = navigator.connection;
+  ResponseTime.innerHTML = networkInformation.rtt + " ms";
+}
+
+function recurciveCalculate(){
+  claculateRTT();
+  console.log("Calculating ping ...");
+  setTimeout(recurciveCalculate,5000);
+}
+
+recurciveCalculate();
