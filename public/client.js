@@ -62,6 +62,12 @@ navigator.mediaDevices
       const fc = () => connectToNewUser(userId, stream)
       timerid = setTimeout(fc, 1000 )
     });
+
+    
+    socket.on('user-disconnected', userId => {
+      if (peers[userId]) peers[userId].close();
+      console.log(userId + " : Disconnected :(");
+    })
   });
 
 const connectToNewUser = (userId, stream) => {
@@ -76,11 +82,6 @@ const connectToNewUser = (userId, stream) => {
 
   peers[userId] = call
 };
-
-socket.on('user-disconnected', userId => {
-  if (peers[userId]) peers[userId].close();
-  console.log(userId + " : Disconnected :(");
-})
 
 peer.on("open", (id) => {
   socket.emit("join-room", ROOM_ID, id, user);
@@ -119,7 +120,7 @@ text.addEventListener("keydown", (e) => {
 const inviteButton = document.querySelector("#inviteButton");
 const muteButton = document.querySelector("#muteButton");
 const stopVideo = document.querySelector("#stopVideo");
-// const shareScreen =document.querySelector("#shareScreen");
+const shareScreen =document.querySelector("#shareScreen");
 
 muteButton.addEventListener("click", () => {
   const MicEnabled = myVideoStream.getAudioTracks()[0].enabled;
@@ -194,24 +195,24 @@ inviteButton.addEventListener("click", (e) => {
   alert('Invite link has been copied.');
 });
 
-// shareScreen.addEventListener("click", ()=>{
-//   const video = document.getElementById("myScreen");
-//   let captureStream = null;
+shareScreen.addEventListener("click", async ()=>{
+  const video = document.createElement("video");
+  let captureStream = null;
 
-//   try {
-//     captureStream = navigator.mediaDevices.getDisplayMedia();
-//     // addVideoStream(video, captureStream);
-//     video.srcObject = captureStream;
-//     video.onloadedmetadata = function(e) {
-//       video.play();
-//       videoGrid.append(video);
-//     };
+  try {
+    captureStream = await navigator.mediaDevices.getDisplayMedia();
+    addVideoStream(video, captureStream);
+    // video.srcObject = captureStream;
+    // video.onloadedmetadata = function(e) {
+    //   video.play();
+    //   videoGrid.append(video);
+    // };
 
-//   } catch(err) {
-//     console.error("Error: " + err);
-//   }
-//   // return captureStream;
-// })
+  } catch(err) {
+    console.error("Error: " + err);
+  }
+  // return captureStream;
+})
 
 socket.on("createMessage", (message, userName) => {
   //For adding message
