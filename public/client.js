@@ -195,13 +195,13 @@ shareScreen.addEventListener("click", async ()=>{
 
   try {
     captureStream = await navigator.mediaDevices.getDisplayMedia();
-    let Sender = peer.getSenders().map(function (sender) {
-      sender.replaceTrack(captureStream.getTracks().find(function (track) {
-          return track.kind === sender.track.kind;
-      }));
-  });
-    Sender.replaceTrack(captureStream)
-    // addVideoStream(video, captureStream);
+    // let Sender = peer.getSenders().map(function (sender) {
+    //   sender.replaceTrack(captureStream.getTracks().find(function (track) {
+    //       return track.kind === sender.track.kind;
+    //   }));
+    // });
+    // Sender.replaceTrack(captureStream)
+    addVideoStream(video, captureStream);
     // video.srcObject = captureStream;
     // video.onloadedmetadata = function(e) {
     //   video.play();
