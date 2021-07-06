@@ -48,6 +48,13 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("createMessage", message, userName);
     });
 
+    socket.on("typing",() => {
+      socket.broadcast.to(roomId).emit("typing",userName);
+    });
+
+    socket.on("stoppedTyping",() => {
+      socket.broadcast.to(roomId).emit("stoppedTyping");
+    })
     socket.on('disconnect', () => {
       socket.broadcast.to(roomId).emit('user-disconnected', userId)
     })

@@ -28,7 +28,7 @@
 
           <div class="logo_text_box">
             <div class="logo_text">
-              <h3>TEAMS CLONE</h3>
+              <h2>TEAMS CLONE</h2>
             </div>
             
           </div>
@@ -39,8 +39,11 @@
     <div class="main">  
     <div class="main__left">
       <div id="network-speed">
-        <p>ResponseTime : </p>
-        <div class="" id= "rtt-value"></div>
+        <!-- <p>ResponseTime : </p> -->
+        <div id = "network-content">
+          <i class="fa fa-signal" aria-hidden="true"></i>
+          <div class="" id= "rtt-value"></div>
+        </div>
       </div>
       <div class="videos__group">
         <div id="video-grid">
@@ -73,9 +76,10 @@
     <div class="main__right">
       <div class="main__chat_window">
           <div class="messages">
-
           </div>
+          <div id="feedback"></div>
       </div>
+      
       <div class="main__message_container">
         <input id="chat_message" type="text" autocomplete="off" placeholder="Type message here...">
         <div id="send" class="options__button">

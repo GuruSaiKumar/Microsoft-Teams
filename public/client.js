@@ -4,23 +4,8 @@ console.log(currentLink)
 const socket = io(currentLink);
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
-const showChat = document.querySelector("#showChat");
-const backBtn = document.querySelector(".header__back");
 myVideo.muted = true;
 
-backBtn.addEventListener("click", () => {
-  document.querySelector(".main__left").style.display = "flex";
-  document.querySelector(".main__left").style.flex = "1";
-  document.querySelector(".main__right").style.display = "none";
-  document.querySelector(".header__back").style.display = "none";
-});
-
-showChat.addEventListener("click", () => {
-  document.querySelector(".main__right").style.display = "flex";
-  document.querySelector(".main__right").style.flex = "1";
-  document.querySelector(".main__left").style.display = "none";
-  document.querySelector(".header__back").style.display = "block";
-});
 
 const user = prompt("Enter your name");
 
@@ -30,15 +15,18 @@ For testing locally we can run a server on some port by using this command
 "peerjs --port 443" => This creates a peerserver on localhost:443
 */ 
 var peer = new Peer(undefined, {
-  host: "gurus-peerjs-server.herokuapp.com", //My peerJs server
+  host: "gurus-peerjs-server.herokuapp.com",
   // host: '/', //For testing on local machine
-  secure: true // For checking secure or insecure i.e, http or https
+  secure: true
 });
 
 
-const peers = {};
+var peers = {};
+var currentPeer = [];
+var userlist = [];
+var cUser;
 
-let myVideoStream;
+var myVideoStream;
 navigator.mediaDevices
   .getUserMedia({
     audio: true,
@@ -49,15 +37,22 @@ navigator.mediaDevices
     addVideoStream(myVideo, stream);
 
     peer.on("call", (call) => {
+      // Answer the call, providing our mediaStream
       call.answer(stream);
       const video = document.createElement("video");
+
       call.on("stream", (userVideoStream) => {
         addVideoStream(video, userVideoStream);
       });
+
+      currentPeer.push(call.peerConnection);
+
+      call.on("close", () =>{
+        video.remove();
+      })
     });
 
     socket.on("user-connected", (userId) => {
-      // connectToNewUser(userId, stream);
       console.log('New User Connected: ' + userId)
       const fc = () => connectToNewUser(userId, stream)
       timerid = setTimeout(fc, 1000 )
@@ -71,6 +66,7 @@ navigator.mediaDevices
   });
 
 const connectToNewUser = (userId, stream) => {
+  // Call a peer, providing our mediaStream
   const call = peer.call(userId, stream);
   const video = document.createElement("video");
   call.on("stream", (userVideoStream) => {
@@ -80,10 +76,12 @@ const connectToNewUser = (userId, stream) => {
     video.remove()
   })
 
-  peers[userId] = call
+  peers[userId] = call;
+  currentPeer.push(call.peerConnection);
 };
 
 peer.on("open", (id) => {
+  cUser = id;
   socket.emit("join-room", ROOM_ID, id, user);
 });
 
@@ -93,49 +91,25 @@ const addVideoStream = (video, stream) => {
   video.controls = true;
   video.addEventListener("loadedmetadata", () => {
     video.play();
-    videoGrid.append(video);
   });
+  videoGrid.append(video);
 };
 
-let text = document.querySelector("#chat_message");
-let sendMessage = document.getElementById("send");
-let messages = document.querySelector(".messages");
 
-sendMessage.addEventListener("click", (e) => {
-  //If message is not empty  emit the message event;
-  if (text.value.length !== 0) {
-    socket.emit("message", text.value);
-    text.value = "";//Clear the textbox
-  }
-});
 
-//Send the message if the user presses Enter
-text.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && text.value.length !== 0) {
-    socket.emit("message", text.value);
-    text.value = "";
-  }
-});
 
-const inviteButton = document.querySelector("#inviteButton");
+//****************************// AUDIO HANDLING //****************************//
+
 const muteButton = document.querySelector("#muteButton");
-const stopVideo = document.querySelector("#stopVideo");
-const shareScreen =document.querySelector("#shareScreen");
 
 muteButton.addEventListener("click", () => {
   const MicEnabled = myVideoStream.getAudioTracks()[0].enabled;
   if (MicEnabled) {
     myVideoStream.getAudioTracks()[0].enabled = false;
     setMuteButton();
-    // html = `<i class="fas fa-microphone-slash"></i>`;
-    // muteButton.classList.toggle("background__red");
-    // muteButton.innerHTML = html;
   } else {
     myVideoStream.getAudioTracks()[0].enabled = true;
     unsetMuteButton();
-    // html = `<i class="fas fa-microphone"></i>`;
-    // muteButton.classList.toggle("background__red");
-    // muteButton.innerHTML = html;
   }
 });
 
@@ -152,6 +126,10 @@ const setMuteButton = () =>{
 }
 
 
+
+//****************************// VIDEO HANDLING //****************************//
+
+const stopVideo = document.querySelector("#stopVideo");
 
 stopVideo.addEventListener("click", () => {
   const VideoEnabled = myVideoStream.getVideoTracks()[0].enabled;
@@ -176,11 +154,14 @@ const unsetVideoButton = () =>{
  console.log("Cammera Mode OFF");
 }
 
+
+//****************************// INVITE  //****************************//
+
+const inviteButton = document.querySelector("#inviteButton");
+
 inviteButton.addEventListener("click", (e) => {
   var share = document.createElement("input"),
   text = window.location.href;
-  
-  console.log(text);
   document.body.appendChild(share);
   share.value = text;
   share.select();
@@ -189,32 +170,82 @@ inviteButton.addEventListener("click", (e) => {
   alert('Invite link has been copied.');
 });
 
+//****************************// SCREEN SHARING //****************************//
+
+const shareScreen = document.querySelector("#shareScreen");
+
 shareScreen.addEventListener("click", async ()=>{
   const video = document.createElement("video");
-  let captureStream = null;
+  var captureStream = null;
 
   try {
     captureStream = await navigator.mediaDevices.getDisplayMedia();
-    // let Sender = peer.getSenders().map(function (sender) {
-    //   sender.replaceTrack(captureStream.getTracks().find(function (track) {
-    //       return track.kind === sender.track.kind;
-    //   }));
-    // });
-    // Sender.replaceTrack(captureStream)
-    addVideoStream(video, captureStream);
-    // video.srcObject = captureStream;
-    // video.onloadedmetadata = function(e) {
-    //   video.play();
-    //   videoGrid.append(video);
-    // };
+    var videoTrack = captureStream.getVideoTracks()[0];
 
+    videoTrack.onended = ()=>{
+      stopScreenShare();
+    }
+
+    for( var x = 0; x<currentPeer.length; x++){
+      var sender = currentPeer[x].getSenders().find((s)=>{
+        return s.track.kind === videoTrack.kind;
+      })
+      sender.replaceTrack(videoTrack);
+    }
   } catch(err) {
     console.error("Error: " + err);
   }
-  // return captureStream;
 })
 
+
+function stopScreenShare(){
+  var videoTrack = myVideoStream.getVideoTracks()[0];
+  for(var x =0;x<currentPeer.length;x++){
+    var sender = currentPeer[x].getSenders().find((s)=>{
+      return s.track.kind === videoTrack.kind;
+    })
+    sender.replaceTrack(videoTrack);
+  }
+}
+
+
+//****************************// MESSAGING //****************************//
+var text = document.querySelector("#chat_message");
+var sendMessage = document.getElementById("send");
+var messages = document.querySelector(".messages");
+var feedback = document.getElementById('feedback');
+
+
+socket.on('typing', function(data){
+  feedback.innerHTML = '<p><em>' + data + ' is typing a message...</em></p>';
+});
+
+socket.on("stoppedTyping",()=>{
+  feedback.innerHTML = "";
+})
+sendMessage.addEventListener("click", (e) => {
+  //If message is not empty  emit the message event;
+  if (text.value.length !== 0) {
+    socket.emit("message", text.value);
+    text.value = "";//Clear the textbox
+  }
+});
+
+//Send the message if the user presses Enter
+text.addEventListener("keydown", (K) => {
+  if (K.key === "Enter" && text.value.length !== 0) {
+    socket.emit("message", text.value);
+    text.value = "";
+  }
+  else if(text.value.length!==0){
+    socket.emit("typing");
+  }
+  else if(text.value.length ===0){
+    socket.emit("stoppedTyping");
+  }
+});
 socket.on("createMessage", (message, userName) => {
+  feedback.innerHTML = '';
   //For adding message
   messages.innerHTML =
     messages.innerHTML +
@@ -237,11 +268,43 @@ socket.on("createMessage", (message, userName) => {
 });
 
 
+const showChat = document.querySelector("#showChat");
+const backBtn = document.querySelector(".header__back");
+
+showChat.addEventListener("click", () => {
+  document.querySelector(".main__right").style.display = "flex";
+  document.querySelector(".main__right").style.flex = "1";
+  document.querySelector(".main__left").style.display = "none";
+  document.querySelector(".header__back").style.display = "block";
+});
+
+backBtn.addEventListener("click", () => {
+  document.querySelector(".main__left").style.display = "flex";
+  document.querySelector(".main__left").style.flex = "1";
+  document.querySelector(".main__right").style.display = "none";
+  document.querySelector(".header__back").style.display = "none";
+});
+
+
+//****************************// PING INFO //****************************//
+
 var ResponseTime = document.getElementById("rtt-value");
 
 function claculateRTT(){
   var networkInformation = navigator.connection;
-  ResponseTime.innerHTML = networkInformation.rtt + " ms";
+  var ping = networkInformation.rtt;
+  ResponseTime.innerHTML = ping + " ms";
+  var networkInfo = document.getElementById("network-content");
+  if(ping<200){
+    networkInfo.style.backgroundColor = "#00FF40";
+  }
+  else if (ping<350){
+    networkInfo.style.backgroundColor = "yellow";
+  }
+  else{
+    networkInfo.style.backgroundColor = "red";
+  }
+  
 }
 
 function recurciveCalculate(){
