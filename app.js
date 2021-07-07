@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
   //When a new user joins the room we emit a event "user-connected" to all others in the room
   socket.on("join-room", (roomId, userId, userName) => {
     socket.join(roomId);
-    socket.broadcast.to(roomId).emit("user-connected",userId)
+    socket.broadcast.to(roomId).emit("user-connected",userId,userName)
 
     socket.on("message", (message) => {
       io.to(roomId).emit("createMessage", message, userName);

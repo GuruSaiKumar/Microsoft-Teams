@@ -1,4 +1,4 @@
-const currentLink = window.location.host + '/';
+const currentLink = window.location.host + "/";
 console.log(currentLink)
 
 const socket = io(currentLink);
@@ -6,9 +6,28 @@ const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 
-
-const user = prompt("Enter your name");
-
+var user;
+Swal.fire({
+  title: "Enter your Name",
+  input: "text",
+  inputLabel: "User Name 😎",
+  inputPlaceholder: "Your Name",
+  confirmButtonText:"Join Call",
+  confirmButtonColor: "#648c11",
+  backdrop:"#733635",
+  allowOutsideClick: false,
+  inputValidator: (value) => {
+    return new Promise((resolve) => {
+      if (value) {
+        resolve()
+      } else {
+        resolve("Your name canot be empty!")
+      }
+    })
+  }
+})
+.then((result) => {
+  user = result.value;
 /*
 Basically we need a peerServer for generating a new Id for each user.
 For testing locally we can run a server on some port by using this command
@@ -16,15 +35,14 @@ For testing locally we can run a server on some port by using this command
 */ 
 var peer = new Peer(undefined, {
   host: "gurus-peerjs-server.herokuapp.com",
-  // host: '/', //For testing on local machine
+  // host: "/", //For testing on local machine
   secure: true
 });
 
 
 var peers = {};
 var currentPeer = [];
-var userlist = [];
-var cUser;
+var currentUser;
 
 var myVideoStream;
 navigator.mediaDevices
@@ -52,14 +70,22 @@ navigator.mediaDevices
       })
     });
 
-    socket.on("user-connected", (userId) => {
-      console.log('New User Connected: ' + userId)
+    socket.on("user-connected", (userId,userName) => {
+
+      //For alert
+      Swal.fire({
+        position: "top-end",
+        text: userName+" joined🔥",
+        showConfirmButton: false,
+        timer: 1500,
+        width: 250,
+      })
       const fc = () => connectToNewUser(userId, stream)
       timerid = setTimeout(fc, 1000 )
     });
 
     
-    socket.on('user-disconnected', userId => {
+    socket.on("user-disconnected", userId => {
       if (peers[userId]) peers[userId].close();
       console.log(userId + " : Disconnected :(");
     })
@@ -72,7 +98,7 @@ const connectToNewUser = (userId, stream) => {
   call.on("stream", (userVideoStream) => {
     addVideoStream(video, userVideoStream);
   });
-  call.on('close', () => {
+  call.on("close", () => {
     video.remove()
   })
 
@@ -81,7 +107,7 @@ const connectToNewUser = (userId, stream) => {
 };
 
 peer.on("open", (id) => {
-  cUser = id;
+  currentUser = id;
   socket.emit("join-room", ROOM_ID, id, user);
 });
 
@@ -117,12 +143,26 @@ const unsetMuteButton = ()=>{
   const html = `<i class="fas fa-microphone"></i>`;
   muteButton.innerHTML = html;
   console.log("You are Unmuted");
+  Swal.fire({
+    position: "top-end",
+    text: "Your mic is on",
+    showConfirmButton: false,
+    timer: 1500,
+    width: 200,
+    })
 }
 
 const setMuteButton = () =>{
  const html = `<i class="fas fa-microphone-slash" style="color:red;"></i>`;
  muteButton.innerHTML = html;
  console.log("Muted");
+ Swal.fire({
+  position: "top-end",
+  text: "You are muted",
+  showConfirmButton: false,
+  timer: 1500,
+  width: 200,
+  })
 }
 
 
@@ -167,7 +207,11 @@ inviteButton.addEventListener("click", (e) => {
   share.select();
   document.execCommand("copy");
   document.body.removeChild(share);
-  alert('Invite link has been copied.');
+  Swal.fire({
+    title: "Invite link has been copied",
+    icon: "success",
+    text: "Share it with your friends!",
+  });
 });
 
 //****************************// SCREEN SHARING //****************************//
@@ -213,11 +257,11 @@ function stopScreenShare(){
 var text = document.querySelector("#chat_message");
 var sendMessage = document.getElementById("send");
 var messages = document.querySelector(".messages");
-var feedback = document.getElementById('feedback');
+var feedback = document.getElementById("feedback");
 
 
-socket.on('typing', function(data){
-  feedback.innerHTML = '<p><em>' + data + ' is typing a message...</em></p>';
+socket.on("typing", function(data){
+  feedback.innerHTML = "<p><em>" + data + " is typing a message...</em></p>";
 });
 
 socket.on("stoppedTyping",()=>{
@@ -245,7 +289,7 @@ text.addEventListener("keydown", (K) => {
   }
 });
 socket.on("createMessage", (message, userName) => {
-  feedback.innerHTML = '';
+  feedback.innerHTML = "";
   //For adding message
   messages.innerHTML =
     messages.innerHTML +
@@ -255,7 +299,7 @@ socket.on("createMessage", (message, userName) => {
             userName === user ? "me" : userName
           }</span> </b>
           <div class = "time">
-            <time> ${ new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" }) }</time>
+            <time> ${ new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }</time>
           </div>
         </div>
         <span>${message}</span>
@@ -289,14 +333,22 @@ backBtn.addEventListener("click", () => {
 //****************************// PING INFO //****************************//
 
 var ResponseTime = document.getElementById("rtt-value");
+var networkInfo = document.getElementById("network-content");
 
+networkInfo.addEventListener("click", ()=>{
+  var currentPing = ResponseTime.innerHTML;
+  Swal.fire({
+    title:"Your ping is "+currentPing,
+    text:"The lesser the better 🧐",
+    icon:"info"
+  });
+})
 function claculateRTT(){
   var networkInformation = navigator.connection;
   var ping = networkInformation.rtt;
   ResponseTime.innerHTML = ping + " ms";
-  var networkInfo = document.getElementById("network-content");
   if(ping<200){
-    networkInfo.style.backgroundColor = "#00FF40";
+    networkInfo.style.backgroundColor = "#009940";
   }
   else if (ping<350){
     networkInfo.style.backgroundColor = "yellow";
@@ -314,3 +366,5 @@ function recurciveCalculate(){
 }
 
 recurciveCalculate();
+
+});
