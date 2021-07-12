@@ -186,12 +186,26 @@ const setVideoButton = ()=>{
   const html = `<i class="fas fa-video"></i>`;
   stopVideo.innerHTML = html;
   console.log("Cammera Mode ON");
+  Swal.fire({
+    position: "top-end",
+    text: "Your cam is on",
+    showConfirmButton: false,
+    timer: 1500,
+    width: 200,
+    })
 }
 
 const unsetVideoButton = () =>{
  const html = `<i class="fas fa-video-slash" style="color:red;"></i>`;
  stopVideo.innerHTML = html;
  console.log("Cammera Mode OFF");
+ Swal.fire({
+  position: "top-end",
+  text: "Your cam is off",
+  showConfirmButton: false,
+  timer: 1500,
+  width: 200,
+  })
 }
 
 
@@ -366,5 +380,26 @@ function recurciveCalculate(){
 }
 
 recurciveCalculate();
+
+//****************************// LEAVE MEETING //****************************//
+
+var leaveButton = document.getElementById("leave-meet");
+console.log(leaveButton)
+leaveButton.addEventListener("click",()=>{  
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You want to leave this meet!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, leave now!',
+    cancelButtonText: 'Nope!',
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.location = "http://" + currentLink + "leave";
+    }
+  })
+
+})
 
 });

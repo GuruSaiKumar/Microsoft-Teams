@@ -31,10 +31,13 @@ app.get('/', (req, res) => {
   res.redirect(`/${uuidv4()}`);// Creates a new random id and redirects it.
 });
 
+app.get('/leave',(req, res)=>{
+  res.render("leave");
+});
+
 app.get('/:room', (req, res) => {
   res.render("room", { roomId: req.params.room });
 });
-
 
 //****************************//SOCKET IO CONNECTION //****************************//
 io.on("connection", (socket) => {
