@@ -396,7 +396,7 @@ leaveButton.addEventListener("click",()=>{
     reverseButtons: true
   }).then((result) => {
     if (result.isConfirmed) {
-      window.location = "http://" + currentLink + "leave";
+      window.location = "https://" + currentLink + "leave";
     }
   })
 
