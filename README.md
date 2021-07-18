@@ -1,10 +1,11 @@
 # Microsoft Teams Clone- Video Conferencing Web App
 
 Under the microsoft Engage 2021 program made a video-chat app, where users can chat with both video and audio and implemented few features such as:
-*Mute and Unmute button (Gives a notification when clicked).
-*Video off and On (Gives a notification when clicked).
-*ScreenShare option.
-*Real Time chat where all other users get notified when someone is typing.
+
+* Mute and Unmute button (Gives a notification when clicked).
+* Video off and On (Gives a notification when clicked).
+* ScreenShare option.
+* Real Time chat where all other users get notified when someone is typing.
 * **PING** info (Total round trip time from server to client).
 
 ## Submission for Microsoft Engage 2021 🌟
@@ -56,13 +57,6 @@ Under the microsoft Engage 2021 program made a video-chat app, where users can c
 3. `npm start`
 4. The app is now running at http://localhost:3000/
 
-
-## Useful Links
-
-- [Deployed Website](https://unite-apurva.herokuapp.com/landing)
-- [Demo Video](https://youtu.be/OKKK1GOnlIU)
-- [Sprint Document](https://docs.google.com/presentation/d/11k8pLJPEV-XJwxIX4ysW9fKmHqFEZHcUWizFcFyVsns/edit?usp=sharing)
-- [Design Document](https://docs.google.com/document/d/1IJcEbbhsbQna-tgcnfV_9_RhXQi4SURlrl3-0HypArE/edit?usp=sharing)
 
 ## Need help?
 
